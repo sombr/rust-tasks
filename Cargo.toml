@@ -1,0 +1,6 @@
+[package]
+name = "tasks"
+version = "0.1.0"
+authors = ["sombr <sombr@yandex-team.ru>"]
+
+[dependencies]
