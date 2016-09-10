@@ -3,6 +3,14 @@ name = "tasks-framework"
 version = "0.1.0"
 authors = ["sombr <sombr@yandex-team.ru>"]
 
+description = "Actor-like Message processing framework inspired by the work of Stepan Koltsov."
+keywords = ["lock-free", "actor", "message"]
+
+homepage = "https://github.com/sombr/rust-tasks"
+repository = "https://github.com/sombr/rust-tasks"
+
+license = "MIT"
+
 [dependencies]
 lock-free-stack = "0.1.1"
 threadpool = "1.3.2"
