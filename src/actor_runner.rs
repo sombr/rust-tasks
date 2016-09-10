@@ -5,20 +5,20 @@ use std::marker::Sync;
 use threadpool::ThreadPool;
 
 use tasks::Tasks;
-use runnable::Runnable;
+use runnable::*;
 
-pub struct ActorRunner<T: Runnable + Send + Sync + Copy> {
+pub struct ActorRunner<T: Runnable> {
     tasks: Arc<Tasks>,
     shutdown: AtomicBool,
     complete_status: AtomicBool,
     complete_status_latch: RwLock<bool>,
 
-    actor: T,
+    actor: Arc<RunnableHolder<T>>,
     execution_pool: Arc<ThreadPool>
 }
 
-impl<T: Runnable + Send + Sync + Copy> ActorRunner<T> {
-    pub fn new( actor: T, execution_pool: Arc<ThreadPool> ) -> ActorRunner<T> {
+impl<T: Runnable> ActorRunner<T> {
+    pub fn new( actor: Arc<RunnableHolder<T>>, execution_pool: Arc<ThreadPool> ) -> ActorRunner<T> {
         ActorRunner {
             tasks: Arc::new(Tasks::new()),
             shutdown: AtomicBool::new(false),
@@ -34,10 +34,10 @@ impl<T: Runnable + Send + Sync + Copy> ActorRunner<T> {
         self.tasks.add_task();
 
         let tasks_ref = self.tasks.clone();
-        let actor_copy = Arc::new(self.actor);
+        let actor_ref = self.actor.clone();
         self.execution_pool.execute(move || {
             while tasks_ref.fetch_task() {
-                actor_copy.run();
+                actor_ref.run();
             }
         });
     }
