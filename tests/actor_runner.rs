@@ -1,8 +1,8 @@
 extern crate threadpool;
-extern crate tasks;
+extern crate tasks_framework;
 
-use tasks::runnable::Runnable;
-use tasks::actor_runner::ActorRunner;
+use tasks_framework::runnable::Runnable;
+use tasks_framework::actor_runner::ActorRunner;
 
 use threadpool::ThreadPool;
 use std::cell::Cell;

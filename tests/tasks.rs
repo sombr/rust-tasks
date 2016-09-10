@@ -1,5 +1,5 @@
-extern crate tasks;
-use tasks::tasks::Tasks;
+extern crate tasks_framework;
+use tasks_framework::tasks::Tasks;
 
 use std::thread::JoinHandle;
 use std::thread::spawn;
