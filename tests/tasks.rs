@@ -6,6 +6,7 @@ use std::thread::spawn;
 use std::sync::Arc;
 
 #[test]
+#[should_panic]
 fn test_fetch_task_should_not_be_called_on_a_waiting_state() {
     let tasks = Tasks::new();
     let recheck_queue = tasks.fetch_task();
@@ -65,7 +66,7 @@ fn test_multi_thread() {
     for i in 0 .. 10 {
         let tasks_ref = tasks.clone();
         threads.push(spawn(move || {
-            for j in i .. 10 {
+            for j in 1 .. 10 {
                 if j % 2 == 0 {
                     let _ = tasks_ref.fetch_task();
                 } else {

@@ -24,7 +24,7 @@ impl Tasks {
         let old_state: usize = self.state.fetch_sub(1, Ordering::Relaxed);
         if old_state == State::RUNNING_GOT_TASKS as usize {
             return true;
-        } else if old_state >= State::WAITING as usize && old_state <= State::RUNNING_NO_TASKS as usize {
+        } else if old_state == State::RUNNING_NO_TASKS as usize {
             return false;
         } else {
             panic!(format!("unknown old state: {}", old_state));

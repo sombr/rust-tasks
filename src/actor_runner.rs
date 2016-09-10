@@ -1,44 +1,61 @@
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::RwLock;
-use std::sync::Arc;
+use std::sync::{Arc, Barrier};
 use std::marker::Sync;
 use threadpool::ThreadPool;
 
 use tasks::Tasks;
 use runnable::Runnable;
 
-pub struct ActorRunner<T: Runnable + Send + Sync + Copy> {
+pub struct ActorRunner<T: Runnable + Send + Sync + 'static> {
     tasks: Arc<Tasks>,
-    shutdown: AtomicBool,
-    complete_status: AtomicBool,
-    complete_status_latch: RwLock<bool>,
+    shutdown: Arc<AtomicBool>,
+    complete_status: Arc<Barrier>,
 
-    actor: T,
+    actor: Arc<T>,
     execution_pool: Arc<ThreadPool>
 }
 
-impl<T: Runnable + Send + Sync + Copy> ActorRunner<T> {
+impl<T: Runnable + Send + Sync + 'static> ActorRunner<T> {
     pub fn new( actor: T, execution_pool: Arc<ThreadPool> ) -> ActorRunner<T> {
         ActorRunner {
             tasks: Arc::new(Tasks::new()),
-            shutdown: AtomicBool::new(false),
-            complete_status: AtomicBool::new(false),
-            complete_status_latch: RwLock::new(false),
+            shutdown: Arc::new(AtomicBool::new(false)),
+            complete_status: Arc::new(Barrier::new(2)),
 
-            actor: actor,
+            actor: Arc::new(actor),
             execution_pool: execution_pool
         }
     }
 
     pub fn schedule(&self) {
-        self.tasks.add_task();
+        if self.tasks.add_task() {
+            let tasks_ref = self.tasks.clone();
+            let actor_ref = self.actor.clone();
+            let shutdown_ref = self.shutdown.clone();
+            let complete_status_ref = self.complete_status.clone();
 
-        let tasks_ref = self.tasks.clone();
-        let actor_copy = Arc::new(self.actor);
-        self.execution_pool.execute(move || {
-            while tasks_ref.fetch_task() {
-                actor_copy.run();
-            }
-        });
+            self.execution_pool.execute(move || {
+                while tasks_ref.fetch_task() {
+                    actor_ref.run();
+
+                    if shutdown_ref.load(Ordering::Relaxed) {
+                        complete_status_ref.wait();
+                    }
+                }
+            })
+        }
+    }
+
+    pub fn complete(&self) {
+        self.shutdown.store(true, Ordering::Relaxed);
+        self.schedule();
+
+        self.complete_status.wait();
+    }
+}
+
+impl<T: Runnable + Send + Sync + 'static> Drop for ActorRunner<T> {
+    fn drop(&mut self) {
+        self.complete();
     }
 }
