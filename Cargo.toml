@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["sombr <sombr@yandex-team.ru>"]
 
 [dependencies]
+lock-free-stack = "0.1.1"
+threadpool = "1.3.2"
