@@ -1,6 +1,10 @@
 # Simple Rust Actors
 Actors framework (inspired by a similar work of Stepan Kolcov in Java) with a Lock-Free message queue and a threadpool.
 
+Actor starts processing as soon  as any workload added and shutdowns when you call "complete".
+
+Substantial performance benefit comes from  using a lock-free collection for input tasks ("messages") and  only scheduling a new actor execution in a separate thread when there's a gap in workload input. 
+
 ## Usage
 
 To use the framework, you need to implement ``MessageProcessor`` trait for your data type.
@@ -15,7 +19,7 @@ use tasks_framework::single_queue_actor::MessageProcessor;
 use tasks_framework::single_queue_actor::SingleQueueActor;
 
 struct NewMessageType {
-   ... your customer message type ...
+   ... your custome message type ...
 }
 
 struct SimpleMessageProcessor {
